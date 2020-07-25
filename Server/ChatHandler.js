@@ -5,7 +5,7 @@ const wss = new ws.Server({port: 3001});
 /**
  * @type {WebSocket[]} connectedClients
  */
-var connectedClients = {};
+var connectedClients = [];
 
 wss.on('connection', async(socket, req)=>{
     socket.on("message", async(msg)=>{
@@ -21,15 +21,19 @@ wss.on('connection', async(socket, req)=>{
             socket.send("auth:success");
         connectedClients[auth.id] = socket;
         }
-    })
-    
+    });
+
+    socket.on('close', (code, reason)=>{
+        connectedClients[connectedClients.indexOf(socket)] = null;
+    });
 });
 
-
 async function sendMessage(sender, id, message){
-    if(connectedClients[id] == null || connectedClients[sender.id] == null) return;
+    if(connectedClients[id] == null) return false;
+    if(connectedClients[sender.id] == null) return true;
 
     connectedClients[id].send("sender:"+sender.id+"msg:" + message);
+    return true;
 }
 
 module.exports={

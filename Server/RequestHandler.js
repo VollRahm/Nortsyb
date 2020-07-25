@@ -2,7 +2,7 @@ const dbManager = require("./DBManager");
 const chatHandler = require("./ChatHandler");
 
 function checkContentType(req){
-    if(req.headers["content-type"] != "application/json"){
+    if(!req.headers["content-type"].includes("application/json")){
         return false;
     }else return true;
 }
@@ -14,6 +14,7 @@ function checkContentType(req){
 async function auth(req, res){
     if(!checkContentType(req)){
         res.status(400).end();
+        return;
     }
 
     try{
@@ -35,6 +36,7 @@ async function auth(req, res){
 async function listUsers(req, res){
     if(!checkContentType(req)){
         res.status(400).end();
+        return;
     }
 
     try{
@@ -57,6 +59,7 @@ async function listUsers(req, res){
 async function send(req, res){
     if(!checkContentType(req)){
         res.status(400).end();
+        return;
     }
 
     try{
@@ -65,7 +68,7 @@ async function send(req, res){
             res.status(403).end();
             return;
         }
-        chatHandler.sendMessage(auth, req.body.id, req.body.message);
+        var isOnline = await chatHandler.sendMessage(auth, req.body.id, req.body.message);
         res.status(200).end();
     }catch{
         res.status(500).end();
