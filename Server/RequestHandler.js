@@ -1,16 +1,19 @@
-const bodyParser = require("body-parser")
-
 const dbManager = require("./DBManager");
+const chatHandler = require("./ChatHandler");
+
+function checkContentType(req){
+    if(req.headers["content-type"] != "application/json"){
+        return false;
+    }else return true;
+}
 
 /**
-@param {import("express").Request<ParamsDictionary, any, any, qs.ParsedQs>} req
+@param {import("express").Request} req
 @param {import("express").Response} res
  */
-
 async function auth(req, res){
-    if(req.headers["content-type"] != "application/json"){
+    if(!checkContentType(req)){
         res.status(400).end();
-        return;
     }
 
     try{
@@ -25,6 +28,50 @@ async function auth(req, res){
     }
 }
 
+/**
+@param {import("express").Request} req
+@param {import("express").Response} res
+ */
+async function listUsers(req, res){
+    if(!checkContentType(req)){
+        res.status(400).end();
+    }
+
+    try{
+        var auth = await dbManager.checkToken(req.body.token);
+        if(auth == null){
+            res.status(403).end();
+            return;
+        }
+        var users = await dbManager.getUsers();
+        res.status(200).json(users);
+    }catch{
+        res.status(500).end();
+    }
+}
+
+/**
+@param {import("express").Request} req
+@param {import("express").Response} res
+ */
+async function send(req, res){
+    if(!checkContentType(req)){
+        res.status(400).end();
+    }
+
+    try{
+        var auth = await dbManager.checkToken(req.body.token);
+        if(auth == null){
+            res.status(403).end();
+            return;
+        }
+        chatHandler.sendMessage(auth, req.body.id, req.body.message);
+        res.status(200).end();
+    }catch{
+        res.status(500).end();
+    }
+}
+
 module.exports={
-    auth
+    auth, listUsers, send
 }

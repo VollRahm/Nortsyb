@@ -16,6 +16,26 @@ function authenticate(username, password){
     })
 }
 
+function getUsers(){
+    var cmd = "SELECT id, username FROM users;";
+    return new Promise((res, rej)=>{
+        db.all(cmd, (err, dbRes)=>{
+            if(err) res(null);
+            res(dbRes);
+        });
+    })
+}
+
+async function checkToken(token){
+    var cmd = "SELECT id, username FROM users WHERE token=?";
+    return new Promise((res, rej)=>{
+        db.get(cmd, [token], (err, dbRes)=>{
+            if(err) res(null);
+            res(dbRes);
+        });
+    });
+}
+
 module.exports={
-    authenticate
+    authenticate, getUsers, checkToken
 }
